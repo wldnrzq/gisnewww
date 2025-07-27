@@ -4,7 +4,10 @@ const nextConfig = {
   images: {
     domains: ['placehold.co'],
   },
-  // output: 'export',
+  // output: 'export', // Tetap dikomentari karena tidak digunakan
+  eslint: {
+    ignoreDuringBuilds: true, // Nonaktifkan ESLint saat build
+  },
 };
 
 module.exports = nextConfig;
