@@ -1,5 +1,5 @@
-import { PrismaClient } from "@prisma/client";
-import hospitalsData from "data/hospital.json";
+const { PrismaClient } = require("@prisma/client");
+const hospitalsData = require("../src/data/hospitals.json");
 
 const prisma = new PrismaClient();
 
@@ -18,10 +18,10 @@ async function main() {
           address: hospital.lokasi.alamat,
           phone: hospital.kontak.telepon,
           email: hospital.kontak.email || null,
-          description: hospital.deskripsi,
+          description: hospital.deskripsi || null,
           latitude: hospital.koordinat.lat,
           longitude: hospital.koordinat.lng,
-          region: hospital.lokasi.wilayah,
+          region: hospital.lokasi.wilayah || null,
         },
       });
       console.log(`Created hospital: ${hospital.nama}`);
@@ -37,8 +37,8 @@ async function main() {
         service = await prisma.service.create({
           data: {
             name: serviceName,
-            description: serviceName, // Gunakan nama sebagai deskripsi sementara
-            icon: "fa-hospital", // Default icon
+            description: serviceName,
+            icon: "fa-hospital",
           },
         });
         console.log(`Created service: ${serviceName}`);
