@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+  seed     = "node prisma/seed.ts"
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role      @default(USER)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Hospital {
+  id            String         @id @default(cuid())
+  name          String
+  address       String
+  phone         String
+  website       String?
+  email         String?
+  description   String?        @db.Text
+  latitude      Float
+  longitude     Float
+  region        String?
+  rating        Float          @default(0)
+  operatingHours String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  services      HospitalService[]
+  images        HospitalImage[]
+
+  @@map("hospitals")
+}
+
+model Service {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  description   String         @db.Text
+  icon          String
+  longDescription String?      @db.Text
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  hospitals     HospitalService[]
+
+  @@map("services")
+}
+
+model HospitalService {
+  hospitalId    String
+  serviceId     String
+  hospital      Hospital       @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  service       Service        @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@id([hospitalId, serviceId])
+  @@map("hospital_services")
+}
+
+model HospitalImage {
+  id          String    @id @default(cuid())
+  hospitalId  String
+  imageUrl    String
+  isPrimary   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  hospital    Hospital  @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+
+  @@map("hospital_images")
+}
+
+model Activity {
+  id        Int      @id @default(autoincrement())
+  action    String
+  user      String
+  details   String
+  timestamp DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("activities")
+}
+
+enum Role {
+  USER
+  ADMIN
+}

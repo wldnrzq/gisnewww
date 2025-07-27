@@ -1,0 +1,267 @@
+{
+  "rumah_sakit": [
+    {
+      "kode_rs": "RS001",
+      "nama": "RSUD Dr. Soetomo",
+      "deskripsi": "RSUD Dr. Soetomo adalah rumah sakit umum terkemuka di Surabaya di bawah Pemerintah Provinsi Jawa Timur. Sebagai rumah sakit pendidikan dan rujukan nasional, RS ini menyediakan layanan medis tingkat lanjut, pelatihan, dan penelitian, dengan keunggulan di bidang pengobatan regeneratif, kardiologi terpadu, dan onkologi. Terakreditasi KARS dengan fasilitas lengkap.",
+      "lokasi": {
+        "alamat": "Jl. Mayjend. Prof. Dr. Moestopo No. 6-8, Kecamatan Gubeng, Kelurahan Airlangga, Kota Surabaya 60286",
+        "wilayah": "Surabaya Timu"
+      },
+      "kontak": {
+        "telepon": "+62 31 5501078",
+        "fax": "+62 812 1670 0101 (khusus pengaduan)",
+        "email": "rsudrsoetomo@jatimprov.go.id"
+      },
+      "layanan": ["UGD 24 Jam",
+        "Rawat Inap",
+        "Rawat Jalan",
+        "Poli Umum",
+        "Poli Anak",
+        "Poli Gigi & Mulut",
+        "Poli Saraf (Neurologi)",
+        "Poli Penyakit Dalam",
+        "Poli Mata",
+        "Poli THT-KL (Telinga Hidung Tenggorok Kepala Leher)",
+        "Poli Jantung & Vaskular (Kardiologi)",
+        "Poli Paru (Pulmonologi)",
+        "Poli Jiwa (Psikiatri)",
+        "Poli Kulit & Kelamin",
+        "Poli Bedah Umum",
+        "Poli Bedah Saraf",
+        "Medical Check-Up",
+        "Diagnostik Lanjutan (MRI, CT Scan, Fluoroscopy, Panoramic, Ultrasound, Radiologi Intervensi)",
+        "Radioterapi",
+        "Pelatihan Penanganan Kegawatdaruratan Maternal dan Neonatal",
+        "Pencegahan dan Pengendalian Infeksi",
+        "Konseling Kesehatan Reproduksi",
+        "Layanan Transplantasi (ginjal, kornea)"],
+      "koordinat": {
+        "lat": -7.267468,
+        "lng": 112.757648
+      }        
+    },
+    {
+      "kode_rs": "RS002",
+      "nama": "Rumah Sakit Universitas Airlangga",
+      "deskripsi": "Rumah Sakit Universitas Airlangga (RSUA) adalah rumah sakit pendidikan di bawah Universitas Airlangga, menyediakan layanan kesehatan berkualitas tinggi dengan fasilitas modern. Unggul dalam klinik mata, onkologi, dan pelayanan berbasis BPJS, dengan 21 poliklinik spesialis.",
+      "lokasi": {
+        "alamat": "Jl. Mayjen Prof. Dr. Moestopo No. 47, Surabaya",
+        "wilayah": "Surabaya Timur"
+      },
+      "kontak": {
+        "telepon": "+62 31 5501488",
+        "email": "rs@unair.ac.id"
+      },
+      "layanan": [
+        "UGD 24 Jam",
+        "Rawat Inap",
+        "Rawat Jalan",
+        "Poliklinik Spesialis (21 spesialisasi termasuk Mata, Onkologi, Kardiologi, Ortopedi, Neurologi)",
+        "Medical Check-Up",
+        "Diagnostik Lanjutan (CT Scan, MRI, USG 4D, Laboratorium)",
+        "Rehabilitasi Medik",
+        "Layanan Bedah (termasuk bedah mata dan onkologi)",
+        "Farmasi 24 Jam",
+        "Klinik Jantungan"
+      ],
+      "koordinat": {
+        "lat": -7.267892,
+        "lng": 112.758124
+      }    
+    },
+    {
+      "kode_rs": "RS003",
+      "nama": "Rumah Sakit Islam Surabaya",
+      "deskripsi": "Rumah Sakit Islam Surabaya, dikelola oleh Yayasan Rumah Sakit Islam Surabaya, menyediakan layanan kesehatan berbasis nilai Islam dengan fasilitas modern di dua cabang (Jemursari dan A. Yani). Unggul dalam hemodialisis, klinik fertilitas, dan layanan tumbuh kembang anak.",
+      "lokasi": {
+        "alamat": "Jl. Achmad Yani No. 2-4, Wonokromo, Surabaya",
+        "wilayah": "Surabaya Selatan"
+      },
+      "kontak": {
+        "telepon": "+62 31 8291920",
+        "email": "info@rsisurabaya.com"
+      },
+      "layanan": [
+        "UGD 24 Jam",
+        "Rawat Inap",
+        "Rawat Jalan (Reguler BPJS dan Eksekutif Non-BPJS)",
+        "Poliklinik Spesialis (Kardiologi, Neurologi, Urologi, Anak, Penyakit Dalam, Mata, Ortopedi)",
+        "Hemodialisis (30 mesin, single-use dialiser)",
+        "Diagnostik Lanjutan (CT Scan, USG, Rontgen, Laboratorium)",
+        "Layanan Bedah (4 kamar operasi, termasuk ortopedi dengan C-arm dan mata dengan phakoemulsifikasi)",
+        "Klinik Fertilitas",
+        "Rehabilitasi Medik (Terapi Okupasi, Terapi Wicara, Tumbuh Kembang Anak)",
+        "Poli Laktasi (konsultasi ASI)",
+        "Pemulasaran Jenazah",
+        "Farmasi 24 Jam"
+      ],
+      "koordinat": {
+        "lat": -7.315427,
+        "lng": 112.735689
+      }      
+    },
+    {
+      "kode_rs": "RS004",
+      "nama": "Rumah Sakit Angkatan Laut Dr. Ramelan (RSAL)",
+      "deskripsi": "Rumah Sakit Angkatan Laut Dr. Ramelan adalah rumah sakit militer di bawah TNI AL yang juga melayani masyarakat umum. Menyediakan layanan kesehatan dengan fasilitas modern, fokus pada pelayanan disiplin dan profesional, dengan keunggulan di bidang bedah dan rehabilitasi medik.",
+      "lokasi": {
+        "alamat": "Jl. Gadung No. 1, Surabaya",
+        "wilayah": "Surabaya Selatan"
+      },
+      "kontak": {
+        "telepon": "+62 31 8439570",
+        "email": "rsalramelan@tnial.mil.id"
+      },
+      "layanan": [
+        "UGD 24 Jam",
+        "Rawat Inap",
+        "Rawat Jalan",
+        "Poliklinik Spesialis (Penyakit Dalam, Anak, Bedah, THT, Mata, Ortopedi)",
+        "Diagnostik (Rontgen, USG, Laboratorium)",
+        "Layanan Bedah Umum",
+        "Rehabilitasi Medik",
+        "Layanan Kedokteran Hiperbarik"
+      ],
+      "koordinat": {
+        "lat": -7.235678,
+        "lng": 112.785432
+      }      
+    },
+    {
+      "kode_rs": "RS005",
+      "nama": "Rumah Sakit Wiyung Sejahtera",
+      "deskripsi": "Rumah Sakit Wiyung Sejahtera adalah rumah sakit swasta di Surabaya Barat yang menyediakan layanan kesehatan umum dan spesialis dengan fasilitas modern. Berfokus pada kenyamanan pasien dan pelayanan efisien.",
+      "lokasi": {
+        "alamat": "Jl. Raya Menganti Wiyung No. 27, Surabaya",
+        "wilayah": "Surabaya Barat"
+      },
+      "kontak": {
+        "telepon": "+62 31 7532777",
+        "email": "info@rswiyungsejahtera.id"
+      },
+      "layanan": [
+        "UGD 24 Jam",
+        "Rawat Inap",
+        "Rawat Jalan",
+        "Poliklinik Spesialis (Anak, Penyakit Dalam, Bedah, THT, Mata)",
+        "Diagnostik (Rontgen, USG, Laboratorium)",
+        "Layanan Bedah Umum"
+      ],
+      "koordinat": {
+        "lat": -7.316543,
+        "lng": 112.674128
+      }      
+    },
+    {
+      "kode_rs": "RS006",
+      "nama": "Rumah Sakit Muji Rahayu",
+      "deskripsi": "Rumah Sakit Muji Rahayu adalah rumah sakit swasta yang menyediakan layanan kesehatan umum dan spesialis dengan pendekatan ramah pasien. Berfokus pada pelayanan cepat dan efisien di wilayah Surabaya Barat.",
+      "lokasi": {
+        "alamat": "Jl. Raya Manukan Kulon No. 66, Surabaya",
+        "wilayah": "Surabaya Barat"
+      },
+      "kontak": {
+        "telepon": "+62 31 7417171",
+        "email": "info@rsmujirahayu.com"
+      },
+      "layanan": [
+        "UGD 24 Jam",
+        "Rawat Inap",
+        "Rawat Jalan",
+        "Poliklinik Spesialis (Penyakit Dalam, Anak, Bedah, THT, Mata)",
+        "Diagnostik (USG, Rontgen, Laboratorium)",
+        "Layanan Bedah Umum"
+      ],
+      "koordinat": {
+        "lat": -7.256789,
+        "lng": 112.678234
+      }
+      
+    },
+    {
+    "kode_rs": "RS007" ,
+    "nama": "RSUD Husada Prima",
+    "deskripsi": "Rumah Sakit Husada Prima merupakan rumah sakit dengan nomor izin 503.445/9/IO.RSK/436.7.2/XI/2020 yang berlokasi di Jl. Karang Tembok No.39, Surabaya Utara. Rumah Sakit Husada Prima ini juga sudah terakreditasi Paripurna oleh KARS (Komite Akreditasi Rumah Sakit) hingga tanggal 24 Oktober 2026. ",
+    "lokasi": {
+      "alamat": "Jl. Karang Tembok No. 39, Surabaya",
+      "wilayah": "Surabaya Utara"
+    },
+    "kontak": {
+      "telepon": "031-3713839",
+      "email": " rsudhp@gmail.com"
+    },
+    "layanan": [
+      "Rawat Inap",
+      "Rawat Jalan",
+      "IGD",
+      "Poliklinik Spesialis (Bedah, Anak, Penyakit Dalam, dll.)",
+      "Laboratorium",
+      "Radiologi",
+      "Bedah Laparoskopi",
+      "Radiologi"
+    ],
+    "koordinat": {
+      "lat": -7.234567,
+      "lng": 112.759812
+    }
+    
+  },
+  {
+    "kode_rs": "RS008" ,
+    "nama": "RS PKU Muhammadiyah Surabaya",
+    "deskripsi": "Rumah Sakit PKU Muhammadiyah Surabaya merupakan rumah sakit dengan nomor izin 503.445/0037/P/IO.RS/436.7.2/X/2020 yang berlokasi di Jl. KH Mas Mansyur No.180 – 182, Surabaya Utara. ",
+    "lokasi": {
+      "alamat": "Jl. Raya Sutorejo No. 64, Dukuh Sutorejo, Kec. Mulyorejo, Surabaya",
+      "wilayah": "Surabaya Utara"
+    },
+    "kontak": {
+      "telepon": "031-5939933",
+      "email": "rsm_sby@yahoo.com"
+    },
+    "layanan": [
+       "Rawat Inap",
+      "Rawat Jalan",
+      "IGD 24 Jam",
+      "Poliklinik Spesialis (Penyakit Dalam, Anak, Bedah, THT, Mata, dll.)",
+      "Laboratorium",
+      "Radiologi",
+      "Hemodialisis",
+      "MCU",
+      "Fisioterapi"
+    ],
+    "koordinat": {
+      "lat": -7.230456,
+      "lng": 112.780123
+    }
+    
+  },
+  {
+    "kode_rs": "RS009",
+    "nama": "Rumah Sakit Surabaya Medical Service",
+    "deskripsi": "Rumah Sakit Surabaya Medical Service merupakan rumah sakit dengan nomor izin 503.445/0032/P/IO.RS/436.7.2/I/2020 yang berlokasi di Tegalsari, tepatnya di Jl. Kapuas No.2, Surabaya Pusat. ",
+    "lokasi": {
+      "alamat": "Jl. Kapuas No.2, Keputran, Kec. Tegalsari, Surabaya",
+      "wilayah": "Surabaya Pusat"
+    },
+    "kontak": {
+      "telepon": " 031-5686161",
+      "email": " rssurabayamedical1@gmail.com"
+    },
+    "layanan": [
+      "Rawat Inap",
+      "Rawat Jalan",
+      "UGD 24 Jam",
+      "Poliklinik Spesialis",
+      "Laboratorium",
+      "Radiologi"
+    ],
+    "koordinat": {
+      "lat": -7.261354,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+      "lng":112.737942 
+    }
+    
+  }
+
+  ]
+}
