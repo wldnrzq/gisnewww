@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import MainLayout from "../../components/layout/MainLayout";
 import hospitalsData from "../../data/hospitals.json";
@@ -48,6 +48,194 @@ export default function MapPage() {
     lng: number;
   } | null>(null);
   const [openPopupIds, setOpenPopupIds] = useState<string[]>([]);
+  const [initialLoading, setInitialLoading] = useState(true); // Ganti loading menjadi initialLoading
+  const [error, setError] = useState<string | null>(null);
+
+  // Validasi rentang koordinat untuk Surabaya
+  const isValidCoordinate = (lat: number, lng: number): boolean => {
+    const LATITUDE_RANGE = { min: -7.4, max: -7.1 };
+    const LONGITUDE_RANGE = { min: 112.6, max: 112.8 };
+    return (
+      lat >= LATITUDE_RANGE.min &&
+      lat <= LATITUDE_RANGE.max &&
+      lng >= LONGITUDE_RANGE.min &&
+      lng <= LONGITUDE_RANGE.max
+    );
+  };
+
+  // Fungsi untuk mengambil data dari API /api/hospitals
+  const fetchHospitalsFromDb = useCallback(async () => {
+    try {
+      const res = await fetch("/api/hospitals", { cache: "no-store" });
+      if (!res.ok) {
+        throw new Error(
+          `Gagal mengambil data rumah sakit dari database: ${res.status} ${res.statusText}`
+        );
+      }
+      const dbHospitals = await res.json();
+      console.log("Data dari /api/hospitals:", dbHospitals);
+      return dbHospitals.filter(
+        (h: HospitalRaw) =>
+          h.koordinat &&
+          typeof h.koordinat.lat === "number" &&
+          typeof h.koordinat.lng === "number" &&
+          !isNaN(h.koordinat.lat) &&
+          !isNaN(h.koordinat.lng) &&
+          isValidCoordinate(h.koordinat.lat, h.koordinat.lng)
+      );
+    } catch (err: any) {
+      console.error("Error fetching hospitals:", {
+        message: err.message,
+        stack: err.stack,
+      });
+      setError("Gagal memuat data dari database. Menampilkan data statis.");
+      return [];
+    }
+  }, []);
+
+  // Fungsi untuk menggabungkan data JSON dan database
+  const combineHospitals = useCallback(
+    (
+      jsonHospitals: HospitalRaw[],
+      dbHospitals: HospitalRaw[]
+    ): HospitalRaw[] => {
+      const hospitalMap = new Map<string, HospitalRaw>();
+
+      // Tambahkan data dari JSON
+      jsonHospitals.forEach((hospital) => {
+        if (isValidCoordinate(hospital.koordinat.lat, hospital.koordinat.lng)) {
+          hospitalMap.set(hospital.kode_rs, hospital);
+        } else {
+          console.warn(
+            `Invalid coordinates in JSON for hospital ${hospital.nama}:`,
+            hospital.koordinat
+          );
+        }
+      });
+
+      // Tambahkan data dari database, timpa jika kode_rs sama
+      dbHospitals.forEach((hospital) => {
+        hospitalMap.set(hospital.kode_rs, hospital);
+      });
+
+      const combined = Array.from(hospitalMap.values());
+      console.log("Combined hospitals:", combined);
+      return combined;
+    },
+    []
+  );
+
+  // Muat data awal saat komponen dimuat
+  useEffect(() => {
+    async function loadInitialHospitals() {
+      setInitialLoading(true);
+      const dbHospitals = await fetchHospitalsFromDb();
+      const combinedHospitals = combineHospitals(
+        hospitalsData.rumah_sakit,
+        dbHospitals
+      );
+      setHospitals(combinedHospitals);
+      setFilteredHospitals(combinedHospitals);
+      setInitialLoading(false);
+    }
+    loadInitialHospitals();
+  }, [fetchHospitalsFromDb, combineHospitals]);
+
+  // Polling data terbaru setiap 30 detik tanpa mengubah UI
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const dbHospitals = await fetchHospitalsFromDb();
+      if (dbHospitals.length > 0) {
+        // Hanya update jika data baru tersedia
+        const combinedHospitals = combineHospitals(
+          hospitalsData.rumah_sakit,
+          dbHospitals
+        );
+        setHospitals(combinedHospitals);
+        // Update filteredHospitals nanti di useEffect filter
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [fetchHospitalsFromDb, combineHospitals]);
+
+  // Update userLocation saat geolocation tersedia
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLat = position.coords.latitude;
+          const userLng = position.coords.longitude;
+          setUserLocation({ lat: userLat, lng: userLng });
+          console.log("User location:", { lat: userLat, lng: userLng });
+        },
+        (err) => {
+          console.error("Geolocation error:", err);
+          setError("Gagal mendapatkan lokasi pengguna");
+        }
+      );
+    }
+  }, []);
+
+  // Filter, sort, dan highlight rumah sakit
+  useEffect(() => {
+    if (!hospitals.length) return;
+
+    const updatedHospitals: HospitalRaw[] = hospitals.map((hospital) => {
+      let distance: number | undefined;
+      if (
+        userLocation &&
+        hospital.koordinat &&
+        typeof hospital.koordinat.lat === "number" &&
+        typeof hospital.koordinat.lng === "number" &&
+        !isNaN(hospital.koordinat.lat) &&
+        !isNaN(hospital.koordinat.lng)
+      ) {
+        distance = getDistanceInKm(
+          userLocation.lat,
+          userLocation.lng,
+          hospital.koordinat.lat,
+          hospital.koordinat.lng
+        );
+      }
+      return {
+        ...hospital,
+        jarak: distance ? parseFloat(distance.toFixed(2)) : undefined,
+        highlight: false,
+      };
+    });
+
+    const filtered = updatedHospitals
+      .filter((hospital) => {
+        const matchesSearch = hospital.nama
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+        const matchesService =
+          selectedServices.length === 0 ||
+          selectedServices.every((service) =>
+            hospital.layanan.some((l) =>
+              l.toLowerCase().includes(service.toLowerCase())
+            )
+          );
+        const matchesDistance = isWithinDistance(hospital.jarak);
+        return matchesSearch && matchesService && matchesDistance;
+      })
+      .sort((a, b) => (a.jarak ?? Infinity) - (b.jarak ?? Infinity));
+
+    if (selectedServices.length > 0) {
+      filtered.forEach((rs) => {
+        rs.highlight = selectedServices.every((layanan) =>
+          rs.layanan.some((l) =>
+            l.toLowerCase().includes(layanan.toLowerCase())
+          )
+        );
+      });
+    }
+
+    console.log("Filtered hospitals:", filtered);
+    setFilteredHospitals(filtered);
+    const filteredIds = filtered.map((rs) => rs.kode_rs);
+    setOpenPopupIds(filteredIds);
+  }, [hospitals, searchTerm, selectedServices, maxDistance, userLocation]);
 
   function getDistanceInKm(
     lat1: number,
@@ -62,84 +250,12 @@ export default function MapPage() {
     return distanceInMeters / 1000;
   }
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const userLat = position.coords.latitude;
-        const userLng = position.coords.longitude;
-        setUserLocation({ lat: userLat, lng: userLng });
-
-        const updatedHospitals: HospitalRaw[] = hospitalsData.rumah_sakit.map(
-          (hospital) => {
-            const rsLat = hospital.koordinat.lat;
-            const rsLng = hospital.koordinat.lng;
-            const distance = getDistanceInKm(userLat, userLng, rsLat, rsLng);
-            return {
-              ...hospital,
-              jarak: parseFloat(distance.toFixed(2)),
-              highlight: false,
-            };
-          }
-        );
-
-        updatedHospitals.sort(
-          (a, b) => (a.jarak ?? Infinity) - (b.jarak ?? Infinity)
-        );
-
-        const rumahSakitDenganLayanan =
-          selectedServices.length > 0
-            ? updatedHospitals.filter((rs) =>
-                selectedServices.every((layanan) =>
-                  rs.layanan.some((l) =>
-                    l.toLowerCase().includes(layanan.toLowerCase())
-                  )
-                )
-              )
-            : [];
-
-        updatedHospitals.forEach((rs) => (rs.highlight = false));
-
-        if (selectedServices.length > 0 && rumahSakitDenganLayanan.length > 0) {
-          rumahSakitDenganLayanan.forEach((rs) => {
-            rs.highlight = true;
-          });
-        } else {
-          // Clear semua highlight
-          updatedHospitals.forEach((rs) => (rs.highlight = false));
-        }
-
-        setHospitals(updatedHospitals);
-      });
-    }
-  }, [selectedServices]);
-
   function isWithinDistance(hospitalDistance: number | undefined) {
-    if (hospitalDistance === undefined) return false;
+    if (hospitalDistance === undefined) return maxDistance === "Semua";
     if (maxDistance === "Semua") return true;
     const max = parseFloat(maxDistance.replace(" km", ""));
     return hospitalDistance <= max;
   }
-
-  useEffect(() => {
-    const filtered = hospitals
-      .filter((hospital) => {
-        const matchesSearch = hospital.nama
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
-        const matchesService =
-          selectedServices.length === 0 ||
-          selectedServices.every((service) =>
-            hospital.layanan.includes(service)
-          );
-        const matchesDistance = isWithinDistance(hospital.jarak);
-        return matchesSearch && matchesService && matchesDistance;
-      })
-      .sort((a, b) => (a.jarak ?? Infinity) - (b.jarak ?? Infinity));
-
-    setFilteredHospitals(filtered);
-    const filteredIds = filtered.map((rs) => rs.kode_rs);
-    setOpenPopupIds(filteredIds);
-  }, [hospitals, searchTerm, selectedServices, maxDistance]);
 
   const handleServiceChange = (service: string) => {
     setSelectedServices((prev) =>
@@ -149,74 +265,93 @@ export default function MapPage() {
     );
   };
 
-  const convertHospitalsForMap = (original: HospitalRaw[]): Hospital[] => {
-    return original.map((h) => {
-      const doctorsMap: { [key: string]: string[] } = {
-        "RSUD Dr. Soetomo": [
-          "AGUS ALI FAUZI, dr., PGD., Pall Med.",
-          "AHMAD AMIN MAHMUDIN, dr.",
-          "BUDI SULISTIANI YULIANTO, dr.",
-        ],
-        "Rumah Sakit Universitas Airlangga": [
-          "Adi Wasis Prakosa, dr",
-          "Aditea Etnawati Putri, dr",
-          "Lenny Octavia, dr",
-        ],
-        "Rumah Sakit Islam Surabaya": [
-          "dr. Putri Ariska Anggraini",
-          "dr. H. Mabruri",
-        ],
-        "Rumah Sakit Angkatan Laut Dr. Ramelan (RSAL)": [
-          "dr. Hendy Bhaskara",
-          "dr. Akhmad Rofiq",
-          "dr. Muhammad Rizky Ramadhani",
-        ],
-        "Rumah Sakit Wiyung Sejahtera": [
-          "dr. Anis Amiranti, Sp.A",
-          "dr. Robby Nurhariansyah, Sp.A",
-        ],
-        "Rumah Sakit Muji Rahayu": ["dr. Bilqis Fiqotun Nabila"],
-        "RSUD Husada Prima": [
-          "dr. Ergia Latifolia, Sp A",
-          "dr. Chairun Nur Prasetya Sp.B",
-          "dr. Achmadi, Sp.OG",
-        ],
-        "RS PKU Muhammadiyah Surabaya": [
-          "dr. Bagus Aulia Mahdi , Sp. PD.",
-          "dr. Agus Maulana, Sp.B.",
-        ],
-        "Rumah Sakit Surabaya Medical Service": [
-          "Atina Irani Wira Putri, Sp.PD",
-          "dr. Wisda Medika V., Sp.JP",
-          "dr. Ira Yunita, Sp. D.V.E",
-        ],
-      };
-      return {
-        id: h.kode_rs,
-        kode_rs: h.kode_rs,
-        name: h.nama,
-        address: h.lokasi.alamat,
-        latitude: h.koordinat.lat,
-        longitude: h.koordinat.lng,
-        services: h.layanan,
-        rating: 4.5,
-        doctors: doctorsMap[h.nama] || [],
-        jarak: h.jarak ?? 0,
-        highlight: h.highlight || false,
-      };
-    });
-  };
+  const convertHospitalsForMap = useCallback(
+    (original: HospitalRaw[]): Hospital[] => {
+      const converted = original.map((h) => {
+        const doctorsMap: { [key: string]: string[] } = {
+          "RSUD Dr. Soetomo": [
+            "AGUS ALI FAUZI, dr., PGD., Pall Med.",
+            "AHMAD AMIN MAHMUDIN, dr.",
+            "BUDI SULISTIANI YULIANTO, dr.",
+          ],
+          "Rumah Sakit Universitas Airlangga": [
+            "Adi Wasis Prakosa, dr",
+            "Aditea Etnawati Putri, dr",
+            "Lenny Octavia, dr",
+          ],
+          "Rumah Sakit Islam Surabaya": [
+            "dr. Putri Ariska Anggraini",
+            "dr. H. Mabruri",
+          ],
+          "Rumah Sakit Angkatan Laut Dr. Ramelan (RSAL)": [
+            "dr. Hendy Bhaskara",
+            "dr. Akhmad Rofiq",
+            "dr. Muhammad Rizky Ramadhani",
+          ],
+          "Rumah Sakit Wiyung Sejahtera": [
+            "dr. Anis Amiranti, Sp.A",
+            "dr. Robby Nurhariansyah, Sp.A",
+          ],
+          "Rumah Sakit Muji Rahayu": ["dr. Bilqis Fiqotun Nabila"],
+          "RSUD Husada Prima": [
+            "dr. Ergia Latifolia, Sp A",
+            "dr. Chairun Nur Prasetya Sp.B",
+            "dr. Achmadi, Sp.OG",
+          ],
+          "RS PKU Muhammadiyah Surabaya": [
+            "dr. Bagus Aulia Mahdi , Sp. PD.",
+            "dr. Agus Maulana, Sp.B.",
+          ],
+          "Rumah Sakit Surabaya Medical Service": [
+            "Atina Irani Wira Putri, Sp.PD",
+            "dr. Wisda Medika V., Sp.JP",
+            "dr. Ira Yunita, Sp. D.V.E",
+          ],
+        };
+        return {
+          id: h.kode_rs,
+          kode_rs: h.kode_rs,
+          name: h.nama,
+          address: h.lokasi?.alamat || "Alamat tidak tersedia",
+          latitude: Number(h.koordinat?.lat) || 0,
+          longitude: Number(h.koordinat?.lng) || 0,
+          services: h.layanan || [],
+          rating: 4.5,
+          doctors: doctorsMap[h.nama] || [],
+          jarak: h.jarak ?? 0,
+          highlight: h.highlight || false,
+        };
+      });
+      console.log("Converted hospitals for map:", converted);
+      return converted;
+    },
+    []
+  );
 
   const highlightLayanan = selectedServices.length > 0 ? selectedServices : [];
 
   const rumahSakitDenganLayananSama =
     highlightLayanan.length > 0
-      ? hospitals
+      ? filteredHospitals
           .filter((rs) =>
             rs.layanan.some((layanan) => highlightLayanan.includes(layanan))
           )
           .slice(0, 3)
       : [];
+
+  if (initialLoading)
+    return <div className="p-6 text-center">Memuat data...</div>;
+  if (error)
+    return (
+      <div className="p-6 text-center text-red-600">
+        {error}
+        <button
+          className="ml-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          onClick={() => window.location.reload()}>
+          Coba Lagi
+        </button>
+      </div>
+    );
 
   return (
     <MainLayout>
@@ -315,7 +450,10 @@ export default function MapPage() {
                       <div key={i} className="border-b border-gray-200 pb-2">
                         <h3 className="font-medium">{rs.nama}</h3>
                         <p className="text-sm text-gray-600">
-                          Jarak: {rs.jarak} km
+                          Jarak: {rs.jarak ?? "N/A"} km
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Koordinat: {rs.koordinat?.lat}, {rs.koordinat?.lng}
                         </p>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {rs.layanan.map((layanan, idx) => (

@@ -1,7 +1,21 @@
 import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  log: ["query", "info", "warn", "error"], // Tambahkan logging Prisma
+});
+
+// Validasi rentang koordinat untuk Surabaya
+const isValidCoordinate = (lat: number, lng: number): boolean => {
+  const LATITUDE_RANGE = { min: -7.4, max: -7.1 };
+  const LONGITUDE_RANGE = { min: 112.6, max: 112.8 };
+  return (
+    lat >= LATITUDE_RANGE.min &&
+    lat <= LATITUDE_RANGE.max &&
+    lng >= LONGITUDE_RANGE.min &&
+    lng <= LONGITUDE_RANGE.max
+  );
+};
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,6 +50,26 @@ export async function POST(req: NextRequest) {
     if (isNaN(lat) || isNaN(lng)) {
       return NextResponse.json(
         { error: "Latitude dan longitude harus berupa angka valid" },
+        { status: 400 }
+      );
+    }
+
+    if (!isValidCoordinate(lat, lng)) {
+      return NextResponse.json(
+        {
+          error:
+            "Koordinat tidak valid untuk wilayah Surabaya (latitude: -7.4 hingga -7.1, longitude: 112.6 hingga 112.8)",
+        },
+        { status: 400 }
+      );
+    }
+
+    const existingHospital = await prisma.hospital.findFirst({
+      where: { name },
+    });
+    if (existingHospital) {
+      return NextResponse.json(
+        { error: "Rumah sakit dengan nama ini sudah ada" },
         { status: 400 }
       );
     }
@@ -108,29 +142,41 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const formatted = hospitals.map((h) => ({
-      kode_rs: h.id,
-      nama: h.name,
-      deskripsi: h.description || "",
-      lokasi: {
-        alamat: h.address,
-        wilayah: h.region || "",
-      },
-      kontak: {
-        telepon: h.phone,
-        email: h.email || "",
-      },
-      koordinat: {
-        lat: h.latitude,
-        lng: h.longitude,
-      },
-      layanan: h.services.map((s) => s.service.name),
-    }));
+    const formatted = hospitals
+      .filter((h) => isValidCoordinate(h.latitude, h.longitude)) // Filter koordinat tidak valid
+      .map((h) => ({
+        kode_rs: h.id,
+        nama: h.name,
+        deskripsi: h.description || "",
+        lokasi: {
+          alamat: h.address,
+          wilayah: h.region || "",
+        },
+        kontak: {
+          telepon: h.phone,
+          email: h.email || "",
+        },
+        koordinat: {
+          lat: Number(h.latitude),
+          lng: Number(h.longitude),
+        },
+        layanan: h.services.map((s) => s.service.name).filter(Boolean),
+      }));
 
-    return NextResponse.json(formatted);
+    console.log("GET /api/hospitals response:", formatted); // Logging untuk debugging
+    return NextResponse.json(formatted, {
+      headers: { "Cache-Control": "no-store" },
+    });
   } catch (error: any) {
-    console.error("Gagal fetch data rumah sakit:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Error fetching hospitals:", {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+    });
+    return NextResponse.json(
+      { error: "Gagal mengambil data rumah sakit", detail: error.message },
+      { status: 500 }
+    );
   } finally {
     await prisma.$disconnect();
   }

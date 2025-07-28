@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import MainLayout from "../../components/layout/MainLayout";
 import Link from "next/link";
 
@@ -14,7 +15,7 @@ interface Hospital {
   services: string[];
   rating: number;
   image: string;
-  highlight?: boolean; // ✅ tambahkan properti ini
+  highlight?: boolean;
 }
 
 // Sample data for hospitals
@@ -210,6 +211,66 @@ const sampleHospitals: Hospital[] = [
 ];
 
 export default function HospitalsPage() {
+  const [hospitals, setHospitals] = useState<Hospital[]>(sampleHospitals);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchHospitals() {
+      try {
+        const res = await fetch("/api/hospitals");
+        if (!res.ok) throw new Error("Gagal mengambil data rumah sakit");
+        const apiHospitals = await res.json();
+
+        // Transform API data to match Hospital interface
+        const transformedHospitals: Hospital[] = apiHospitals.map((h: any) => {
+          // Handle services field
+          let services: string[] = [];
+          if (Array.isArray(h.layanan)) {
+            services = h.layanan;
+          } else if (typeof h.layanan === "string") {
+            services = h.layanan.split(", ");
+          } else {
+            services = [];
+          }
+
+          return {
+            id: h.id,
+            kode_rs: h.kode_rs,
+            name: h.nama,
+            address: h.lokasi?.alamat || "Tidak tersedia",
+            phone: h.kontak?.telepon || "Tidak tersedia",
+            operatingHours: h.jam_operasional || "Tidak tersedia",
+            services,
+            rating: h.rating || 4.0,
+            image: h.gambar || "Tidak ada gambar",
+          };
+        });
+
+        // Combine sample hospitals with API hospitals, prioritizing API data
+        const combinedHospitals = [
+          ...sampleHospitals,
+          ...transformedHospitals.filter(
+            (apiHospital) =>
+              !sampleHospitals.some(
+                (sample) => sample.kode_rs === apiHospital.kode_rs
+              )
+          ),
+        ];
+
+        setHospitals(combinedHospitals);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchHospitals();
+  }, []);
+
+  if (loading) return <div className="p-6 text-center">Memuat data...</div>;
+  if (error) return <div className="p-6 text-center text-red-600">{error}</div>;
+
   return (
     <MainLayout>
       <div className="container mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-8">
@@ -218,17 +279,25 @@ export default function HospitalsPage() {
         </h1>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sampleHospitals.map((hospital) => (
+          {hospitals.map((hospital) => (
             <div
-              key={hospital.id}
+              key={hospital.kode_rs}
               className="card hover:shadow-lg transition-shadow rounded-lg border border-gray-200 bg-white shadow-sm">
               <div className="relative h-40 sm:h-48 mb-4 rounded-t-lg overflow-hidden">
-                <img
-                  src={hospital.image}
-                  alt={hospital.name}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
+                {hospital.image === "Tidak ada gambar" ? (
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-500 text-sm">
+                      Tidak ada gambar
+                    </span>
+                  </div>
+                ) : (
+                  <img
+                    src={hospital.image}
+                    alt={hospital.name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                )}
               </div>
 
               <div className="px-4 pb-4">
@@ -258,7 +327,6 @@ export default function HospitalsPage() {
                 </div>
 
                 <p className="flex items-start mb-2 text-gray-600 text-sm sm:text-base">
-                  {/* Icon */}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5 mr-2 text-gray-500 flex-shrink-0"
@@ -282,7 +350,6 @@ export default function HospitalsPage() {
                 </p>
 
                 <p className="flex items-start mb-2 text-gray-600 text-sm sm:text-base">
-                  {/* Icon */}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5 mr-2 text-gray-500 flex-shrink-0"
@@ -300,7 +367,6 @@ export default function HospitalsPage() {
                 </p>
 
                 <p className="flex items-start mb-3 text-gray-600 text-sm sm:text-base">
-                  {/* Icon */}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-5 w-5 mr-2 text-gray-500 flex-shrink-0"
