@@ -281,15 +281,16 @@ export default function Home() {
               Tidak ada data rumah sakit yang tersedia.
             </p>
           )}
-          <div
-            className="flex justify-center sticky top-[70px] z-20 bg-white py-4"
-            style={{ width: "1000px", margin: "0 auto" }}>
-            <MapComponent
-              hospitals={hospitals}
-              height="350px"
-              showUserLocation={false}
-            />
+          <div className="sticky top-[70px] z-20 bg-white py-4 px-4">
+            <div className="w-full max-w-[1000px] mx-auto">
+              <MapComponent
+                hospitals={hospitals}
+                height="350px"
+                showUserLocation={false}
+              />
+            </div>
           </div>
+
           <div className="flex flex-col md:flex-row justify-center gap-4 sticky top-[450px] z-20 bg-white py-4">
             <Link
               href="/map"

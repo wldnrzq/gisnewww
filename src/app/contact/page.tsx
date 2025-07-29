@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { useState } from "react";
 import MainLayout from "../../components/layout/MainLayout";
 import Link from "next/link";
@@ -11,10 +13,11 @@ export default function ContactPage() {
     subject: "",
     message: "",
   });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  // Keep contactId for internal tracking but don't show to user
+  const [contactId, setContactId] = useState("");
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -34,17 +37,30 @@ export default function ContactPage() {
     setSubmitError("");
 
     try {
-      // In a real app, this would be an API call to submit the form
-      // For demo purposes, we'll simulate a successful submission after a delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      setSubmitSuccess(true);
-      setFormData({
-        name: "",
-        email: "",
-        subject: "",
-        message: "",
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
       });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSubmitSuccess(true);
+        setContactId(result.contactId || ""); // Store internally but don't show
+        setFormData({
+          name: "",
+          email: "",
+          subject: "",
+          message: "",
+        });
+      } else {
+        setSubmitError(
+          result.message || "Terjadi kesalahan saat mengirim pesan."
+        );
+      }
     } catch (error) {
       setSubmitError(
         "Terjadi kesalahan saat mengirim pesan. Silakan coba lagi."
@@ -63,7 +79,6 @@ export default function ContactPage() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="text-xl font-semibold mb-4">Informasi Kontak</h2>
-
               <div className="space-y-4">
                 <div className="flex items-start">
                   <div className="flex-shrink-0 bg-primary-light p-3 rounded-full mr-4">
@@ -86,7 +101,6 @@ export default function ContactPage() {
                     <p className="text-text-secondary">(031) 1234-5678</p>
                   </div>
                 </div>
-
                 <div className="flex items-start">
                   <div className="flex-shrink-0 bg-primary-light p-3 rounded-full mr-4">
                     <svg
@@ -108,7 +122,6 @@ export default function ContactPage() {
                     <p className="text-text-secondary">info@webgisrs.com</p>
                   </div>
                 </div>
-
                 <div className="flex items-start">
                   <div className="flex-shrink-0 bg-primary-light p-3 rounded-full mr-4">
                     <svg
@@ -143,7 +156,6 @@ export default function ContactPage() {
                   </div>
                 </div>
               </div>
-
               <div className="mt-6">
                 <h3 className="font-medium mb-3">Jam Operasional</h3>
                 <div className="space-y-1 text-sm text-text-secondary">
@@ -161,7 +173,6 @@ export default function ContactPage() {
                   </div>
                 </div>
               </div>
-
               <div className="mt-6">
                 <h3 className="font-medium mb-3">Media Sosial</h3>
                 <div className="flex space-x-3">
@@ -213,9 +224,13 @@ export default function ContactPage() {
                     Pesan Anda telah berhasil dikirim. Terima kasih telah
                     menghubungi kami. Kami akan segera merespons pesan Anda.
                   </p>
+                  {/* ❌ REMOVED: Reference ID display - keep it clean for users */}
                   <button
                     className="mt-2 text-sm font-medium text-green-700 hover:text-green-900"
-                    onClick={() => setSubmitSuccess(false)}>
+                    onClick={() => {
+                      setSubmitSuccess(false);
+                      setContactId(""); // Clear contact ID internally
+                    }}>
                     Kirim pesan lain
                   </button>
                 </div>
@@ -226,7 +241,6 @@ export default function ContactPage() {
                       {submitError}
                     </div>
                   )}
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                       <label
@@ -245,7 +259,6 @@ export default function ContactPage() {
                         placeholder="Masukkan nama lengkap Anda"
                       />
                     </div>
-
                     <div>
                       <label
                         htmlFor="email"
@@ -264,7 +277,6 @@ export default function ContactPage() {
                       />
                     </div>
                   </div>
-
                   <div className="mb-4">
                     <label
                       htmlFor="subject"
@@ -288,7 +300,6 @@ export default function ContactPage() {
                       <option value="Lainnya">Lainnya</option>
                     </select>
                   </div>
-
                   <div className="mb-4">
                     <label
                       htmlFor="message"
@@ -305,7 +316,6 @@ export default function ContactPage() {
                       className="input-field py-2"
                       placeholder="Tulis pesan Anda di sini..."></textarea>
                   </div>
-
                   <div className="flex items-center mb-4">
                     <input
                       type="checkbox"
@@ -325,13 +335,10 @@ export default function ContactPage() {
                       dan penggunaan data saya untuk tujuan komunikasi.
                     </label>
                   </div>
-
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`btn-primary w-full ${
-                      isSubmitting ? "opacity-70 cursor-not-allowed" : ""
-                    }`}>
+                    className={`btn-primary w-full ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""}`}>
                     {isSubmitting ? "Mengirim..." : "Kirim Pesan"}
                   </button>
                 </form>
@@ -357,7 +364,6 @@ export default function ContactPage() {
           <h2 className="text-xl font-semibold mb-4 text-primary">
             Pertanyaan yang Sering Diajukan (FAQ)
           </h2>
-
           <div className="space-y-4">
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <h3 className="font-medium text-primary">
@@ -368,7 +374,6 @@ export default function ContactPage() {
                 gratis oleh semua pengguna.
               </p>
             </div>
-
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <h3 className="font-medium text-primary">
                 Bagaimana cara mengizinkan akses lokasi?
@@ -381,7 +386,6 @@ export default function ContactPage() {
                 tidak akan berfungsi.
               </p>
             </div>
-
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <h3 className="font-medium text-primary">
                 Apakah data rumah sakit selalu diperbarui?
@@ -392,7 +396,6 @@ export default function ContactPage() {
                 akurat, silakan hubungi kami melalui formulir kontak di atas.
               </p>
             </div>
-
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <h3 className="font-medium text-primary">
                 Bagaimana cara memberikan ulasan untuk rumah sakit?

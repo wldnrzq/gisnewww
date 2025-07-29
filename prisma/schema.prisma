@@ -3,78 +3,91 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url  	    = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
-  email     String    @unique
+  email     String   @unique
   password  String
-  role      Role      @default(USER)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("users")
 }
 
 model Hospital {
-  id            String         @id @default(cuid())
-  name          String
-  address       String
-  phone         String
-  website       String?
-  email         String?
-  description   String?        @db.Text
-  latitude      Float
-  longitude     Float
-  region        String?
-  rating        Float          @default(0)
+  id             String            @id @default(cuid())
+  name           String
+  address        String
+  phone          String
+  website        String?
+  email          String?
+  description    String?           @db.Text
+  latitude       Float
+  longitude      Float
+  region         String?
+  rating         Float             @default(0)
   operatingHours String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  services      HospitalService[]
-  images        HospitalImage[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  services       HospitalService[]
+  images         HospitalImage[]
 
   @@map("hospitals")
 }
 
 model Service {
-  id            String         @id @default(cuid())
-  name          String         @unique
-  description   String         @db.Text
-  icon          String
-  longDescription String?      @db.Text
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  hospitals     HospitalService[]
+  id              String            @id @default(cuid())
+  name            String            @unique
+  description     String            @db.Text
+  icon            String
+  longDescription String?           @db.Text
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  hospitals       HospitalService[]
 
   @@map("services")
 }
 
 model HospitalService {
-  hospitalId    String
-  serviceId     String
-  hospital      Hospital       @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
-  service       Service        @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  hospitalId String
+  serviceId  String
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@id([hospitalId, serviceId])
   @@map("hospital_services")
 }
 
 model HospitalImage {
-  id          String    @id @default(cuid())
-  hospitalId  String
-  imageUrl    String
-  isPrimary   Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  hospital    Hospital  @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  hospitalId String
+  imageUrl   String
+  isPrimary  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  hospital   Hospital @relation(fields: [hospitalId], references: [id], onDelete: Cascade)
 
   @@map("hospital_images")
+}
+
+model Contact {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String        @db.Text
+  status    ContactStatus @default(UNREAD)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("contacts")
 }
 
 model Activity {
@@ -88,7 +101,15 @@ model Activity {
   @@map("activities")
 }
 
+// 🎯 INI YANG KURANG - ENUM DEFINITIONS
 enum Role {
   USER
   ADMIN
+}
+
+enum ContactStatus {
+  UNREAD
+  READ
+  REPLIED
+  ARCHIVED
 }
